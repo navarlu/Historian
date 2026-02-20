@@ -5,6 +5,8 @@ __pycache__/
 .env
 data/
 logs/
+state/*.json
+!state/.gitkeep
 
 login.txt
 cmd.txt

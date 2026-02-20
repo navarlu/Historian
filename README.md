@@ -1,17 +1,26 @@
-# Historian (InfluxDB + Grafana)
+﻿# Historian (InfluxDB + Grafana + OPC UA UI)
 
-Simple local historian stack for high-frequency PID data:
+Local historian stack for high-frequency PID data:
 - InfluxDB 1.8 for storage
 - Grafana for visualization
-- Python scripts in `test/` for data generation and dashboard updates
+- Python app/scripts for synthetic data, downsampling, and loop/tag management
 
 ## Showcase
 
 ![Historian Dashboard Showcase](docs/assets/showcase.png)
 
-## 1. Start Docker Services
+## Repository Structure
 
-From project root:
+- `app/historian_ui.py`: Historian web UI (OPC UA browse -> tag selection -> loop mapping -> logging -> Grafana link)
+- `scripts/influx/setup_hf_schema.py`: Influx schema + retention policies + CQ setup
+- `scripts/influx/seed_pid_sim.py`: 1s synthetic PID data generator/writer
+- `scripts/influx/backfill_downsample.py`: backfill downsample series from raw data
+- `scripts/influx/query_benchmark.py`: benchmark queries (raw vs downsample)
+- `scripts/grafana/push_hf_dashboard.py`: push/update Grafana dashboard JSON via API
+- `grafana/`: Grafana provisioning files
+- `state/`: runtime UI state (`tag_selection.json`, `loop_assignments.json`)
+
+## 1. Start Docker Services
 
 ```powershell
 docker compose up -d
@@ -29,71 +38,96 @@ Stop services:
 docker compose down
 ```
 
-## 2. Open Grafana
+## 2. Install Python Dependencies
+
+If `.venv` does not exist:
+
+```powershell
+uv venv
+uv pip install -r requirements.txt
+```
+
+If `.venv` already exists:
+
+```powershell
+uv pip install -r requirements.txt
+```
+
+## 3. Open Grafana
 
 - URL: `http://localhost:3000`
-- Default user: `admin`
+- User: `admin`
 - Password: from `.env` (`GRAFANA_PASSWORD`)
 
-## 3. Prepare / Update Dashboard
-
-Push dashboard definition to Grafana:
+## 4. Prepare Schema and Dashboard
 
 ```powershell
-uv run python test/grafana_hf_trend_dashboard.py
+uv run python scripts/influx/setup_hf_schema.py
+uv run python scripts/grafana/push_hf_dashboard.py
 ```
 
-If `uv` is not available in your shell, use:
+Fallback (without `uv` in shell):
 
 ```powershell
-.venv\Scripts\python.exe test/grafana_hf_trend_dashboard.py
+.venv\Scripts\python.exe scripts/influx/setup_hf_schema.py
+.venv\Scripts\python.exe scripts/grafana/push_hf_dashboard.py
 ```
 
-## 4. Generate Synthetic Historical Data
+## 5. Generate Historical Data
 
-### High-frequency PID simulation (1 year, 1 second)
+1 year at 1-second rate:
 
 ```powershell
-uv run python test/influx_hf_seed_pid_sim.py
+uv run python scripts/influx/seed_pid_sim.py
 ```
 
-This writes to:
+Writes to:
 - measurement: `pid_loop_hf_raw`
+- retention policy: `hf_raw_400d`
 - loop: `hf_test_loop_002`
 - machine: `DeviceSyntheticPID`
 
-### Build downsampled series (for `ds_1m` / `ds_auto`)
+Backfill downsample:
 
 ```powershell
 $env:HF_LOOP_ID='hf_test_loop_002'
 $env:HF_MACHINE_ID='DeviceSyntheticPID'
-uv run python test/influx_hf_backfill_downsample.py
+uv run python scripts/influx/backfill_downsample.py
 ```
 
-## 5. View Historical Data in Grafana
+## 6. View in Grafana
 
-Open dashboard:
+Dashboard URL:
 
 `http://localhost:3000/d/pid-hf-1s-benchmark/pid-high-frequency-benchmark`
 
-Set variables:
+Use variables:
 - `Loop`: `hf_test_loop_002`
 - `Machine`: `DeviceSyntheticPID`
-- `Method`: choose one of:
-  - `raw_1s` (true 1s raw)
-  - `raw_auto` (raw aggregated by auto interval)
-  - `ds_1m` (fixed 1-minute downsample)
-  - `ds_auto` (downsample + auto interval)
+- `Method`: `raw_auto`, `raw_1s`, `ds_1m`, `ds_auto`
 
-Panels:
-- Top: `SP/PV`
-- Bottom: `CO`
-- Info panel shows selected method + auto interval
+## 7. Run Historian Web UI
 
-## 6. Typical Workflow
+```powershell
+uv run python app/historian_ui.py
+```
+
+Open:
+
+`http://localhost:5050`
+
+Flow:
+1. Browse OPC UA and add tags.
+2. Save selected tags.
+3. Assign selected tags to loops (`PV`/`SP`/`CO`).
+4. Start loop logging.
+5. Open selected loop in fullscreen Grafana.
+
+## 8. Typical Workflow
 
 1. `docker compose up -d`
-2. Generate or update data (`test/influx_hf_seed_pid_sim.py`)
-3. Backfill downsample (`test/influx_hf_backfill_downsample.py`)
-4. Push dashboard (`test/grafana_hf_trend_dashboard.py`)
-5. Open Grafana and inspect ranges (`7d`, `30d`, `90d`, `1y`)
+2. `uv run python scripts/influx/setup_hf_schema.py`
+3. `uv run python scripts/influx/seed_pid_sim.py`
+4. `uv run python scripts/influx/backfill_downsample.py`
+5. `uv run python scripts/grafana/push_hf_dashboard.py`
+6. `uv run python app/historian_ui.py`
