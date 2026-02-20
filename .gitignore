@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+
+.env
+data/
+logs/
+
+login.txt
+cmd.txt
+TODO.txt

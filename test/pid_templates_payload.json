@@ -1,0 +1,16 @@
+﻿{
+  "templates": [
+    {
+      "id": "pid_device1",
+      "pv_nodeid": "ns=2;s=Channel1.Device1.PV",
+      "sp_nodeid": "ns=2;s=Channel1.Device1.SP",
+      "co_nodeid": "ns=2;s=Channel1.Device1.CO"
+    },
+    {
+      "id": "pid_device2",
+      "pv_nodeid": "ns=2;s=Channel1.Device2.PV",
+      "sp_nodeid": "ns=2;s=Channel1.Device2.SP",
+      "co_nodeid": "ns=2;s=Channel1.Device2.CO"
+    }
+  ]
+}

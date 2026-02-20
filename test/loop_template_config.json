@@ -1,0 +1,22 @@
+﻿{
+  "opcua_url": "opc.tcp://localhost:49320",
+  "influx_host": "localhost",
+  "influx_port": 8086,
+  "influx_db": "opcuadata",
+  "measurement": "pid_loop_data",
+  "poll_interval_seconds": 1.0,
+  "iterations": 0,
+  "loop_id": "common_loop",
+  "devices": [
+    "Device1",
+    "Device2",
+    "Device3"
+  ],
+  "nodeid_template": "ns=2;s=Channel1.{device}.{signal}",
+  "field_to_signal": {
+    "PV": "PV",
+    "SP": "SP",
+    "CO": "CO"
+  }
+}
+
