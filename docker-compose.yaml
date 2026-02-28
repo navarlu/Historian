@@ -11,7 +11,7 @@ services:
       - ./data/influxdb:/var/lib/influxdb
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana-oss:12.3.1
     container_name: historian-grafana
     depends_on:
       - influxdb
@@ -21,7 +21,15 @@ services:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "false"
+      GF_SECURITY_COOKIE_SAMESITE: none
     volumes:
       - ./data/grafana:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards-json
+
+networks:
+  default:
+    name: optimwise_historian_net

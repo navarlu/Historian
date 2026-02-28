@@ -116,7 +116,7 @@ def build_payload() -> dict:
         make_raw_target(
             "I2",
             (
-                'SELECT min("PV_mean") AS "PV min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT last("PV_min") AS "PV min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_1m')} GROUP BY time(1m) fill(null)"
             ),
@@ -125,7 +125,7 @@ def build_payload() -> dict:
         make_raw_target(
             "I3",
             (
-                'SELECT max("PV_mean") AS "PV max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT last("PV_max") AS "PV max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_1m')} GROUP BY time(1m) fill(null)"
             ),
@@ -134,7 +134,7 @@ def build_payload() -> dict:
         make_raw_target(
             "I4",
             (
-                'SELECT min("SP_last") AS "SP min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT last("SP_min") AS "SP min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_1m')} GROUP BY time(1m) fill(null)"
             ),
@@ -143,7 +143,7 @@ def build_payload() -> dict:
         make_raw_target(
             "I5",
             (
-                'SELECT max("SP_last") AS "SP max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT last("SP_max") AS "SP max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_1m')} GROUP BY time(1m) fill(null)"
             ),
@@ -152,7 +152,7 @@ def build_payload() -> dict:
         make_raw_target(
             "I6",
             (
-                'SELECT min("CO_mean") AS "CO min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT last("CO_min") AS "CO min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_1m')} GROUP BY time(1m) fill(null)"
             ),
@@ -161,7 +161,7 @@ def build_payload() -> dict:
         make_raw_target(
             "I7",
             (
-                'SELECT max("CO_mean") AS "CO max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT last("CO_max") AS "CO max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_1m')} GROUP BY time(1m) fill(null)"
             ),
@@ -251,7 +251,7 @@ def build_payload() -> dict:
         make_raw_target(
             "S",
             (
-                'SELECT min("PV_mean") AS "PV min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT min("PV_min") AS "PV min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_auto')} GROUP BY time($__interval) fill(null)"
             ),
@@ -260,7 +260,7 @@ def build_payload() -> dict:
         make_raw_target(
             "T",
             (
-                'SELECT max("PV_mean") AS "PV max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT max("PV_max") AS "PV max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_auto')} GROUP BY time($__interval) fill(null)"
             ),
@@ -269,7 +269,7 @@ def build_payload() -> dict:
         make_raw_target(
             "U",
             (
-                'SELECT min("SP_last") AS "SP min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT min("SP_min") AS "SP min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_auto')} GROUP BY time($__interval) fill(null)"
             ),
@@ -278,7 +278,7 @@ def build_payload() -> dict:
         make_raw_target(
             "V",
             (
-                'SELECT max("SP_last") AS "SP max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT max("SP_max") AS "SP max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_auto')} GROUP BY time($__interval) fill(null)"
             ),
@@ -287,7 +287,7 @@ def build_payload() -> dict:
         make_raw_target(
             "W",
             (
-                'SELECT min("CO_mean") AS "CO min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT min("CO_min") AS "CO min" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_auto')} GROUP BY time($__interval) fill(null)"
             ),
@@ -296,7 +296,7 @@ def build_payload() -> dict:
         make_raw_target(
             "X",
             (
-                'SELECT max("CO_mean") AS "CO max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
+                'SELECT max("CO_max") AS "CO max" FROM "hf_ds_5y"."pid_loop_hf_1m" '
                 "WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' "
                 f"{method_guard('ds_auto')} GROUP BY time($__interval) fill(null)"
             ),
@@ -321,7 +321,7 @@ def build_payload() -> dict:
                 "custom": {
                     "drawStyle": "line",
                     "lineWidth": 2,
-                    "showPoints": "never",
+                    "showPoints": "auto",
                 }
             },
             "overrides": [
@@ -367,6 +367,12 @@ def build_payload() -> dict:
                 },
             ],
         },
+        "options": {
+            "tooltip": {
+                "mode": "multi",
+                "sort": "none",
+            }
+        },
     }
 
     panel_co = {
@@ -382,7 +388,7 @@ def build_payload() -> dict:
                 "custom": {
                     "drawStyle": "line",
                     "lineWidth": 2,
-                    "showPoints": "never",
+                    "showPoints": "auto",
                 }
             },
             "overrides": [
@@ -416,6 +422,12 @@ def build_payload() -> dict:
                 },
             ],
         },
+        "options": {
+            "tooltip": {
+                "mode": "multi",
+                "sort": "none",
+            }
+        },
     }
 
     panel_interval_info = {
@@ -438,6 +450,7 @@ def build_payload() -> dict:
             "title": "PID High-Frequency Benchmark",
             "schemaVersion": 39,
             "version": 1,
+            "graphTooltip": 2,
             "refresh": "10s",
             "time": {"from": "now-60d", "to": "now"},
             "templating": {

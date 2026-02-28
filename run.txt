@@ -1,0 +1,5 @@
+docker compose up -d
+
+uv run python app/grafana_view_wizard.py
+
+uv run python app/historian_ui.py

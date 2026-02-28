@@ -23,6 +23,9 @@ MAX_CACHE_AGE_SECONDS = 30
 MAX_PENDING_POINTS = 120000
 LOOP_CACHE_MAX_AGE_SECONDS = 300
 LOOP_MAX_BACKFILL_SECONDS = 10
+DEFAULT_SAVE_MODE = "always"
+DEFAULT_DEADBAND = 0.0
+DEFAULT_HEARTBEAT_SECONDS = 30
 
 SELECTION_FILE = Path("state/tag_selection.json")
 LOOP_ASSIGNMENTS_FILE = Path("state/loop_assignments.json")
@@ -46,6 +49,7 @@ loop_logger_running = False
 
 raw_cache_lock = threading.Lock()
 raw_value_cache = {}
+raw_write_policy_cache = {}
 
 loop_cache_lock = threading.Lock()
 loop_value_cache = {}
@@ -80,7 +84,41 @@ def save_json(path: Path, payload: dict) -> None:
 
 
 def load_selection() -> dict:
-    return load_json(SELECTION_FILE, {"tags": []})
+    raw = load_json(SELECTION_FILE, {"tags": []})
+    tags = raw.get("tags", [])
+    clean_tags = []
+    for item in tags:
+        if not isinstance(item, dict):
+            continue
+        nodeid = str(item.get("nodeid", "")).strip()
+        label = str(item.get("label", "")).strip() or nodeid
+        if not nodeid:
+            continue
+        mode = str(item.get("save_mode", DEFAULT_SAVE_MODE)).strip().lower()
+        if mode not in {"always", "on_change"}:
+            mode = DEFAULT_SAVE_MODE
+        try:
+            deadband = float(item.get("deadband", DEFAULT_DEADBAND))
+        except Exception:
+            deadband = DEFAULT_DEADBAND
+        if deadband < 0:
+            deadband = 0.0
+        try:
+            heartbeat_s = int(item.get("heartbeat_s", DEFAULT_HEARTBEAT_SECONDS))
+        except Exception:
+            heartbeat_s = DEFAULT_HEARTBEAT_SECONDS
+        if heartbeat_s < 1:
+            heartbeat_s = 1
+        clean_tags.append(
+            {
+                "label": label,
+                "nodeid": nodeid,
+                "save_mode": mode,
+                "deadband": deadband,
+                "heartbeat_s": heartbeat_s,
+            }
+        )
+    return {"tags": clean_tags}
 
 
 def save_selection(selection: dict) -> None:
@@ -157,6 +195,28 @@ def safe_float(value):
     raise ValueError(f"Non-numeric value: {value!r}")
 
 
+def should_write_raw_point(
+    nodeid: str,
+    value: float,
+    ts: int,
+    save_mode: str,
+    deadband: float,
+    heartbeat_s: int,
+) -> bool:
+    if save_mode == "always":
+        return True
+
+    state = raw_write_policy_cache.get(nodeid)
+    if state is None:
+        return True
+
+    last_value = float(state.get("value", value))
+    last_ts = int(state.get("ts", ts))
+    delta = abs(float(value) - last_value)
+    elapsed = ts - last_ts
+    return delta >= float(deadband) or elapsed >= int(heartbeat_s)
+
+
 def raw_logging_loop() -> None:
     global raw_logger_running
     influx = get_influx_client()
@@ -177,6 +237,21 @@ def raw_logging_loop() -> None:
             for item in selection:
                 nodeid = item.get("nodeid", "")
                 label = item.get("label", nodeid)
+                save_mode = str(item.get("save_mode", DEFAULT_SAVE_MODE)).strip().lower()
+                if save_mode not in {"always", "on_change"}:
+                    save_mode = DEFAULT_SAVE_MODE
+                try:
+                    deadband = float(item.get("deadband", DEFAULT_DEADBAND))
+                except Exception:
+                    deadband = DEFAULT_DEADBAND
+                if deadband < 0:
+                    deadband = 0.0
+                try:
+                    heartbeat_s = int(item.get("heartbeat_s", DEFAULT_HEARTBEAT_SECONDS))
+                except Exception:
+                    heartbeat_s = DEFAULT_HEARTBEAT_SECONDS
+                if heartbeat_s < 1:
+                    heartbeat_s = 1
                 if not nodeid:
                     continue
                 with raw_cache_lock:
@@ -186,6 +261,16 @@ def raw_logging_loop() -> None:
                         cache=raw_value_cache,
                     )
                 if numeric_value is None:
+                    continue
+
+                if not should_write_raw_point(
+                    nodeid=nodeid,
+                    value=float(numeric_value),
+                    ts=ts,
+                    save_mode=save_mode,
+                    deadband=deadband,
+                    heartbeat_s=heartbeat_s,
+                ):
                     continue
 
                 new_points.append(
@@ -201,6 +286,7 @@ def raw_logging_loop() -> None:
                         },
                     }
                 )
+                raw_write_policy_cache[nodeid] = {"value": float(numeric_value), "ts": ts}
 
         if new_points:
             pending_points.extend(new_points)
@@ -1091,8 +1177,31 @@ def api_save_selection():
     for item in tags:
         nodeid = str(item.get("nodeid", "")).strip()
         label = str(item.get("label", "")).strip() or nodeid
+        save_mode = str(item.get("save_mode", DEFAULT_SAVE_MODE)).strip().lower()
+        if save_mode not in {"always", "on_change"}:
+            save_mode = DEFAULT_SAVE_MODE
+        try:
+            deadband = float(item.get("deadband", DEFAULT_DEADBAND))
+        except Exception:
+            deadband = DEFAULT_DEADBAND
+        if deadband < 0:
+            deadband = 0.0
+        try:
+            heartbeat_s = int(item.get("heartbeat_s", DEFAULT_HEARTBEAT_SECONDS))
+        except Exception:
+            heartbeat_s = DEFAULT_HEARTBEAT_SECONDS
+        if heartbeat_s < 1:
+            heartbeat_s = 1
         if nodeid:
-            clean_tags.append({"label": label, "nodeid": nodeid})
+            clean_tags.append(
+                {
+                    "label": label,
+                    "nodeid": nodeid,
+                    "save_mode": save_mode,
+                    "deadband": deadband,
+                    "heartbeat_s": heartbeat_s,
+                }
+            )
     save_selection({"tags": clean_tags})
     return {"saved": len(clean_tags)}
 
@@ -1142,6 +1251,9 @@ def api_tags_status():
                 {
                     "label": label,
                     "nodeid": nodeid,
+                    "save_mode": str(item.get("save_mode", DEFAULT_SAVE_MODE)),
+                    "deadband": float(item.get("deadband", DEFAULT_DEADBAND)),
+                    "heartbeat_s": int(item.get("heartbeat_s", DEFAULT_HEARTBEAT_SECONDS)),
                     "live_value": live_value,
                     "live_error": live_error,
                     "saved_value": saved_value,
@@ -1206,6 +1318,7 @@ def api_raw_logging_start():
     with raw_logger_lock:
         if raw_logger_running:
             return {"message": "Raw tag logging already running."}
+        raw_write_policy_cache.clear()
         raw_logger_running = True
         raw_logger_thread = threading.Thread(target=raw_logging_loop, daemon=True)
         raw_logger_thread.start()

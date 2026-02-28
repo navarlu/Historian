@@ -1,0 +1,712 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 6,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PV"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "SP"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^PV (min|max)$"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#6CA6FF",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PV min"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "PV max"
+            },
+            "properties": [
+              {
+                "id": "custom.fillBelowTo",
+                "value": "PV min"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 20
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CO"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "maxDataPoints": 2000,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.3",
+      "targets": [
+        {
+          "alias": "PV",
+          "query": "SELECT last(\"PV\") AS \"PV\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_1s' = '$method' GROUP BY time(1s) fill(null)",
+          "rawQuery": true,
+          "refId": "A",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "SP",
+          "query": "SELECT last(\"SP\") AS \"SP\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_1s' = '$method' GROUP BY time(1s) fill(null)",
+          "rawQuery": true,
+          "refId": "B",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "PV",
+          "query": "SELECT mean(\"PV\") AS \"PV\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "D",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "SP",
+          "query": "SELECT last(\"SP\") AS \"SP\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "E",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "PV",
+          "query": "SELECT last(\"PV_mean\") AS \"PV\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_1m' = '$method' GROUP BY time(1m) fill(null)",
+          "rawQuery": true,
+          "refId": "G",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "SP",
+          "query": "SELECT last(\"SP_last\") AS \"SP\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_1m' = '$method' GROUP BY time(1m) fill(null)",
+          "rawQuery": true,
+          "refId": "H",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "PV min",
+          "query": "SELECT min(\"PV_mean\") AS \"PV min\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_1m' = '$method' GROUP BY time(1m) fill(null)",
+          "rawQuery": true,
+          "refId": "I2",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "PV max",
+          "query": "SELECT max(\"PV_mean\") AS \"PV max\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_1m' = '$method' GROUP BY time(1m) fill(null)",
+          "rawQuery": true,
+          "refId": "I3",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "PV",
+          "query": "SELECT mean(\"PV_mean\") AS \"PV\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "J",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "SP",
+          "query": "SELECT last(\"SP_last\") AS \"SP\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "K",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "PV min",
+          "query": "SELECT min(\"PV\") AS \"PV min\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "M",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "PV max",
+          "query": "SELECT max(\"PV\") AS \"PV max\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "N",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "PV min",
+          "query": "SELECT min(\"PV_mean\") AS \"PV min\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "S",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "PV max",
+          "query": "SELECT max(\"PV_mean\") AS \"PV max\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "T",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "PID SP/PV (Select Method)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "InfluxDB",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CO"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^CO (min|max)$"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "#FF8A8A",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CO min"
+            },
+            "properties": [
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CO max"
+            },
+            "properties": [
+              {
+                "id": "custom.fillBelowTo",
+                "value": "CO min"
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 20
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 2,
+      "maxDataPoints": 2000,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.3",
+      "targets": [
+        {
+          "alias": "CO",
+          "query": "SELECT last(\"CO\") AS \"CO\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_1s' = '$method' GROUP BY time(1s) fill(null)",
+          "rawQuery": true,
+          "refId": "C",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "CO",
+          "query": "SELECT mean(\"CO\") AS \"CO\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "F",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "CO",
+          "query": "SELECT last(\"CO_mean\") AS \"CO\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_1m' = '$method' GROUP BY time(1m) fill(null)",
+          "rawQuery": true,
+          "refId": "I",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "CO min",
+          "query": "SELECT min(\"CO_mean\") AS \"CO min\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_1m' = '$method' GROUP BY time(1m) fill(null)",
+          "rawQuery": true,
+          "refId": "I6",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "CO max",
+          "query": "SELECT max(\"CO_mean\") AS \"CO max\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_1m' = '$method' GROUP BY time(1m) fill(null)",
+          "rawQuery": true,
+          "refId": "I7",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "CO",
+          "query": "SELECT mean(\"CO_mean\") AS \"CO\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "L",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "CO min",
+          "query": "SELECT min(\"CO\") AS \"CO min\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "Q",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "CO max",
+          "query": "SELECT max(\"CO\") AS \"CO max\" FROM \"hf_raw_400d\".\"pid_loop_hf_raw\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'raw_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "R",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "CO min",
+          "query": "SELECT min(\"CO_mean\") AS \"CO min\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "W",
+          "resultFormat": "time_series"
+        },
+        {
+          "alias": "CO max",
+          "query": "SELECT max(\"CO_mean\") AS \"CO max\" FROM \"hf_ds_5y\".\"pid_loop_hf_1m\" WHERE $timeFilter AND \"loop_id\"='$loop_id' AND \"machine_id\"='$machine_id' AND 'ds_auto' = '$method' GROUP BY time($__interval) fill(null)",
+          "rawQuery": true,
+          "refId": "X",
+          "resultFormat": "time_series"
+        }
+      ],
+      "title": "PID CO (Select Method)",
+      "type": "timeseries"
+    },
+    {
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "id": 3,
+      "options": {
+        "code": {
+          "language": "plaintext",
+          "showLineNumbers": false,
+          "showMiniMap": false
+        },
+        "content": "**Method:** `${method}`  \n**Auto interval used in `raw_auto`/`ds_auto`:** `${auto_interval}`",
+        "mode": "markdown"
+      },
+      "pluginVersion": "12.3.3",
+      "title": "Auto Interval Info",
+      "type": "text"
+    }
+  ],
+  "preload": false,
+  "refresh": "10s",
+  "schemaVersion": 42,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "hf_test_loop_002",
+          "value": "hf_test_loop_002"
+        },
+        "datasource": "InfluxDB",
+        "label": "Loop",
+        "name": "loop_id",
+        "options": [],
+        "query": "SHOW TAG VALUES FROM \"pid_loop_hf_raw\" WITH KEY = \"loop_id\"",
+        "refresh": 1,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": "DeviceSyntheticPID",
+          "value": "DeviceSyntheticPID"
+        },
+        "datasource": "InfluxDB",
+        "label": "Machine",
+        "name": "machine_id",
+        "options": [],
+        "query": "SHOW TAG VALUES FROM \"pid_loop_hf_raw\" WITH KEY = \"machine_id\"",
+        "refresh": 1,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": "raw_auto",
+          "value": "raw_auto"
+        },
+        "label": "Method",
+        "name": "method",
+        "options": [
+          {
+            "selected": false,
+            "text": "raw_1s",
+            "value": "raw_1s"
+          },
+          {
+            "selected": true,
+            "text": "raw_auto",
+            "value": "raw_auto"
+          },
+          {
+            "selected": false,
+            "text": "ds_1m",
+            "value": "ds_1m"
+          },
+          {
+            "selected": false,
+            "text": "ds_auto",
+            "value": "ds_auto"
+          }
+        ],
+        "query": "raw_1s,raw_auto,ds_1m,ds_auto",
+        "type": "custom"
+      },
+      {
+        "auto": true,
+        "auto_count": 1500,
+        "auto_min": "1s",
+        "current": {
+          "text": "$__auto",
+          "value": "$__auto"
+        },
+        "label": "Auto Interval",
+        "name": "auto_interval",
+        "options": [
+          {
+            "selected": false,
+            "text": "1s",
+            "value": "1s"
+          },
+          {
+            "selected": false,
+            "text": "5s",
+            "value": "5s"
+          },
+          {
+            "selected": false,
+            "text": "10s",
+            "value": "10s"
+          },
+          {
+            "selected": false,
+            "text": "30s",
+            "value": "30s"
+          },
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "10m",
+            "value": "10m"
+          },
+          {
+            "selected": false,
+            "text": "30m",
+            "value": "30m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "6h",
+            "value": "6h"
+          },
+          {
+            "selected": false,
+            "text": "12h",
+            "value": "12h"
+          },
+          {
+            "selected": false,
+            "text": "1d",
+            "value": "1d"
+          }
+        ],
+        "query": "1s,5s,10s,30s,1m,5m,10m,30m,1h,6h,12h,1d",
+        "type": "interval"
+      }
+    ]
+  },
+  "time": {
+    "from": "2026-02-07T23:13:18.684Z",
+    "to": "2026-02-08T04:08:21.171Z"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "PID High-Frequency Benchmark Copy",
+  "uid": "adm7rjm",
+  "version": 1
+}

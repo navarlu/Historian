@@ -131,3 +131,37 @@ Flow:
 4. `uv run python scripts/influx/backfill_downsample.py`
 5. `uv run python scripts/grafana/push_hf_dashboard.py`
 6. `uv run python app/historian_ui.py`
+
+## 9. Grafana View Tree Wizard (MVP)
+
+This MVP lets you:
+- capture one manually-created Grafana dashboard as a reusable template
+- define folder tree structure (plant -> zone -> ...)
+- instantiate many views from that template by only changing variable/tag values
+
+Current simplified mode:
+- primary focus is folder/view tree editing
+- newly created views start with empty template/tags/variables
+- deploy can still create placeholder dashboards (empty panels) for structure-first setup
+- tree UI uses Wunderbaum (modern tree component) loaded from CDN
+
+Run wizard:
+
+```powershell
+uv run python app/grafana_view_wizard.py
+```
+
+Open:
+
+`http://localhost:5051`
+
+Flow:
+1. Build one base dashboard manually in Grafana and note its dashboard UID.
+2. In wizard Step 1, capture it as a template (for example `pid-loop-base`).
+3. In Step 2 (Tree Editor), create folders/subfolders and views.
+4. New views are saved with empty `template_id`, `tags`, and `variable_values` by default.
+5. Deploy tree. Wizard will create folders and generated dashboards via Grafana API.
+
+Notes:
+- If nested folders are not available in Grafana, wizard falls back to flat folder names like `Historian / Plant A / Zone 1`.
+- Keep query/tag differences in template variables so you can reuse the same template across zones.
